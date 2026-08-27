@@ -16,7 +16,7 @@ const projectsData = [
             "assets/images/lbrs/Play Store 5.png"
         ],
         storeLink: "https://play.google.com/store/apps/details?id=com.GravityVortex.LetsBreakIt",
-        privacyLink: "#", // Replace '#' with your actual privacy policy URL
+        privacyLink: "privacy-lbrs.html", // Updated link to actual privacy policy
         
         // Translations
         desc_short: {
