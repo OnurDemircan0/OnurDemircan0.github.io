@@ -6,7 +6,7 @@ const projectsData = [
     {
         id: "lbrs",
         date: "2023-11-01",
-        title: "Let's Break The Stones!",
+        title: "Smash The Stones",
         logo: "assets/images/lbrs/LBS Logo.png",
         images: [
             "assets/images/lbrs/Play Store 1.png",
