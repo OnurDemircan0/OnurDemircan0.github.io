@@ -16,7 +16,8 @@ const projectsData = [
             "assets/images/lbrs/Play Store 5.png"
         ],
         storeLink: "https://play.google.com/store/apps/details?id=com.GravityVortex.LetsBreakIt",
-        privacyLink: "privacy-lbrs.html", // Updated link to actual privacy policy
+        privacyLink: "privacy-lbrs.html",
+        qrCode: "assets/images/qr/qr-lbrs.png", // Updated link to actual privacy policy
         
         // Translations
         desc_short: {
@@ -47,7 +48,8 @@ const projectsData = [
         ],
         storeLink: "https://play.google.com/store/apps/details?id=com.gravity_vortex.mindsharp_challenges",
         appStoreLink: "https://apps.apple.com/us/app/mindsharp-challenges/id6785757077",
-        privacyLink: "privacy-msc.html", 
+        privacyLink: "privacy-msc.html",
+        qrCode: "assets/images/qr/qr-msc.png", 
         desc_short: {
             en: "A brain-training app featuring a variety of mini-games to improve reflexes, logic, and memory.",
             tr: "Refleks, mantık ve hafızayı geliştirmek için mini oyunlar içeren bir beyin jimnastiği uygulaması."
@@ -76,7 +78,8 @@ const projectsData = [
         ],
         storeLink: "https://play.google.com/store/apps/details?id=com.gravityvortex.islamicwordgames",
         appStoreLink: "https://apps.apple.com/us/app/islamic-games-together/id6761419571",
-        privacyLink: "privacy-igt.html", 
+        privacyLink: "privacy-igt.html",
+        qrCode: "assets/images/qr/qr-igt.png", 
         termsLink: "terms-igt.html",
         desc_short: {
             en: "A multiplayer word game featuring anagrams, word searches, and taboo-style challenges for Muslim families.",

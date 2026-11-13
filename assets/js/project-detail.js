@@ -351,7 +351,11 @@ function loadProjectDetails() {
                 }
             }
 
-            if (typeof qrcodegen !== 'undefined') {
+            if (project.qrCode) {
+                // Use pre-rendered ultra-crisp static image (100% reliable, zero rendering artifacts)
+                if (qrDisplay) qrDisplay.innerHTML = `<img src="${project.qrCode}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px; display: block;">`;
+                if (qrLarge) qrLarge.innerHTML = `<img src="${project.qrCode}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px; display: block;">`;
+            } else if (typeof qrcodegen !== 'undefined') {
                 if (qrDisplay) qrcodegen.renderTo(qrDisplay, qrTargetUrl, 4);
                 if (qrLarge) qrcodegen.renderTo(qrLarge, qrTargetUrl, 4);
             }
