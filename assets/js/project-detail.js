@@ -353,11 +353,9 @@ function loadProjectDetails() {
 
             if (project.qrCode) {
                 // Use pre-rendered ultra-crisp static image (100% reliable, zero rendering artifacts)
-                if (qrDisplay) qrDisplay.innerHTML = `<img src="${project.qrCode}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px; display: block;">`;
-                if (qrLarge) qrLarge.innerHTML = `<img src="${project.qrCode}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px; display: block;">`;
-            } else if (typeof qrcodegen !== 'undefined') {
-                if (qrDisplay) qrcodegen.renderTo(qrDisplay, qrTargetUrl, 4);
-                if (qrLarge) qrcodegen.renderTo(qrLarge, qrTargetUrl, 4);
+                const qrSrc = project.qrCode + '?v=4';
+                if (qrDisplay) qrDisplay.innerHTML = `<img src="${qrSrc}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px; display: block;">`;
+                if (qrLarge) qrLarge.innerHTML = `<img src="${qrSrc}" alt="QR Code" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px; display: block;">`;
             }
 
             const currentTitle = typeof project.title === 'string' ? project.title : (project.title[window.currentLang || 'en'] || project.title.en);
@@ -579,7 +577,7 @@ function setupLightbox() {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function initProjectDetail() {
     loadProjectDetails();
 
     const nextBtn = document.getElementById('next-img');
@@ -590,8 +588,13 @@ window.addEventListener('DOMContentLoaded', () => {
     
     setupLightbox();
     setupQRModal();
-});
+}
 
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initProjectDetail);
+} else {
+    initProjectDetail();
+}
 
 function openQRModal() {
     const qrModal = document.getElementById('qr-modal');
@@ -615,13 +618,12 @@ function setupQRModal() {
     const qrModal = document.getElementById('qr-modal');
     const qrClose = document.getElementById('qr-modal-close');
     const qrContainer = document.getElementById('qr-container');
-    const qrDisplay = document.getElementById('qr-code-display');
-    const qrZoomHint = document.getElementById('qr-zoom-hint');
 
-    if (qrDisplay) qrDisplay.addEventListener('click', openQRModal);
-    if (qrZoomHint) qrZoomHint.addEventListener('click', openQRModal);
     if (qrContainer) {
-        qrContainer.addEventListener('click', openQRModal);
+        qrContainer.style.cursor = 'pointer';
+        qrContainer.addEventListener('click', () => {
+            openQRModal();
+        });
     }
 
     if (qrClose) {
