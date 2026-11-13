@@ -48,8 +48,9 @@ const translations = {
         btn_store: "Play Store",
         btn_privacy: "Privacy Policy",
         btn_terms: "Terms of Use",
-        qr_title: "Scan QR",
-        qr_subtitle: "Play on mobile",
+        qr_title: "Scan to Play on Mobile",
+        qr_subtitle: "Point your phone camera to download directly.",
+        qr_zoom_hint: "🔍 Click QR code to enlarge",
         qr_modal_title: "Scan to Download",
         qr_modal_desc: "Scan this QR code with your phone camera to download.",
         error_not_found: "Project not found."
@@ -103,8 +104,9 @@ const translations = {
         btn_store: "Play Store",
         btn_privacy: "Gizlilik Politikası",
         btn_terms: "Kullanım Koşulları",
-        qr_title: "QR Tara",
-        qr_subtitle: "Mobilde oyna",
+        qr_title: "Mobilde Oynamak İçin Tara",
+        qr_subtitle: "Doğrudan indirmek için telefonunuzun kamerasını yöneltin.",
+        qr_zoom_hint: "🔍 Büyütmek için QR koda tıklayın",
         qr_modal_title: "İndirmek İçin Tara",
         qr_modal_desc: "Oyunu indirmek için telefonunuzun kamerasıyla bu QR kodunu tarayın.",
         error_not_found: "Proje bulunamadı."

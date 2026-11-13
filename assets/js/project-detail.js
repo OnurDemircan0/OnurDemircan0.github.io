@@ -322,13 +322,14 @@ function loadProjectDetails() {
     // Visible only if user device is a computer.
     const qrContainer = document.getElementById('qr-container');
     const qrModal = document.getElementById('qr-modal');
-    const qrMini = document.getElementById('qr-code-mini');
+    const qrDisplay = document.getElementById('qr-code-display');
     const qrLarge = document.getElementById('qr-code-large');
     const qrGameName = document.getElementById('qr-game-name');
+    const qrZoomHint = document.getElementById('qr-zoom-hint');
 
     if (qrContainer) {
         if (userOS === 'computer' && (hasPlayStore || hasAppStore)) {
-            qrContainer.style.display = 'inline-flex';
+            qrContainer.style.display = 'flex';
 
             // Smart download URL routes to appropriate store when scanned with phone
             const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
@@ -337,16 +338,18 @@ function loadProjectDetails() {
                 : ('https://onurdemircan0.github.io/download.html?id=' + encodeURIComponent(project.id));
 
             if (typeof qrcodegen !== 'undefined') {
-                if (qrMini) qrcodegen.renderTo(qrMini, smartUrl, 1);
-                if (qrLarge) qrcodegen.renderTo(qrLarge, smartUrl, 2);
+                if (qrDisplay) qrcodegen.renderTo(qrDisplay, smartUrl, 2);
+                if (qrLarge) qrcodegen.renderTo(qrLarge, smartUrl, 3);
             }
 
             const currentTitle = typeof project.title === 'string' ? project.title : (project.title[window.currentLang || 'en'] || project.title.en);
             if (qrGameName) qrGameName.innerText = currentTitle;
 
-            qrContainer.onclick = () => {
+            const openModal = () => {
                 if (qrModal) qrModal.style.display = 'flex';
             };
+            if (qrDisplay) qrDisplay.onclick = openModal;
+            if (qrZoomHint) qrZoomHint.onclick = openModal;
         } else {
             qrContainer.style.display = 'none';
         }

@@ -772,14 +772,19 @@ button[type="submit"]:hover {
     box-shadow: none;
 }
 
-.qr-widget {
+.qr-card {
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.qr-widget:hover {
+.qr-card:hover {
     transform: translateY(-2px);
     border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+#qr-code-display:hover {
+    transform: scale(1.03);
+    transition: transform 0.2s ease;
 }
 
 
