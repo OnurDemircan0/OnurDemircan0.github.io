@@ -331,25 +331,33 @@ function loadProjectDetails() {
         if (userOS === 'computer' && (hasPlayStore || hasAppStore)) {
             qrContainer.style.display = 'flex';
 
-            // Smart download URL routes to appropriate store when scanned with phone
-            const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-            const smartUrl = window.location.protocol.startsWith('http')
-                ? (window.location.origin + basePath + 'download.html?id=' + encodeURIComponent(project.id))
-                : ('https://onurdemircan0.github.io/download.html?id=' + encodeURIComponent(project.id));
+            // QR Code URL:
+            // If the game is only on one store (e.g. Smash The Stones is only on Play Store),
+            // point directly to that store link for 100% instant scanning without any server dependency!
+            let qrTargetUrl = '';
+            if (hasPlayStore && !hasAppStore) {
+                qrTargetUrl = project.storeLink;
+            } else if (hasAppStore && !hasPlayStore) {
+                qrTargetUrl = project.appStoreLink;
+            } else {
+                // Multi-store game: use smart redirect
+                // Avoid localhost / 127.0.0.1 in QR codes because phones cannot connect to your PC localhost!
+                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+                if (!isLocalhost && window.location.protocol.startsWith('http')) {
+                    const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+                    qrTargetUrl = window.location.origin + basePath + 'download.html?id=' + encodeURIComponent(project.id);
+                } else {
+                    qrTargetUrl = 'https://onurdemircan0.github.io/download.html?id=' + encodeURIComponent(project.id);
+                }
+            }
 
             if (typeof qrcodegen !== 'undefined') {
-                if (qrDisplay) qrcodegen.renderTo(qrDisplay, smartUrl, 2);
-                if (qrLarge) qrcodegen.renderTo(qrLarge, smartUrl, 3);
+                if (qrDisplay) qrcodegen.renderTo(qrDisplay, qrTargetUrl, 4);
+                if (qrLarge) qrcodegen.renderTo(qrLarge, qrTargetUrl, 4);
             }
 
             const currentTitle = typeof project.title === 'string' ? project.title : (project.title[window.currentLang || 'en'] || project.title.en);
             if (qrGameName) qrGameName.innerText = currentTitle;
-
-            const openModal = () => {
-                if (qrModal) qrModal.style.display = 'flex';
-            };
-            if (qrDisplay) qrDisplay.onclick = openModal;
-            if (qrZoomHint) qrZoomHint.onclick = openModal;
         } else {
             qrContainer.style.display = 'none';
         }
@@ -581,26 +589,55 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
+function openQRModal() {
+    const qrModal = document.getElementById('qr-modal');
+    if (!qrModal) return;
+    qrModal.style.display = 'flex';
+    setTimeout(() => {
+        qrModal.classList.add('active');
+    }, 10);
+}
+
+function closeQRModal() {
+    const qrModal = document.getElementById('qr-modal');
+    if (!qrModal) return;
+    qrModal.classList.remove('active');
+    setTimeout(() => {
+        qrModal.style.display = 'none';
+    }, 300);
+}
+
 function setupQRModal() {
     const qrModal = document.getElementById('qr-modal');
     const qrClose = document.getElementById('qr-modal-close');
-    if (!qrModal) return;
+    const qrContainer = document.getElementById('qr-container');
+    const qrDisplay = document.getElementById('qr-code-display');
+    const qrZoomHint = document.getElementById('qr-zoom-hint');
+
+    if (qrDisplay) qrDisplay.addEventListener('click', openQRModal);
+    if (qrZoomHint) qrZoomHint.addEventListener('click', openQRModal);
+    if (qrContainer) {
+        qrContainer.addEventListener('click', openQRModal);
+    }
 
     if (qrClose) {
-        qrClose.addEventListener('click', () => {
-            qrModal.style.display = 'none';
+        qrClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeQRModal();
         });
     }
 
-    qrModal.addEventListener('click', (e) => {
-        if (e.target === qrModal) {
-            qrModal.style.display = 'none';
-        }
-    });
+    if (qrModal) {
+        qrModal.addEventListener('click', (e) => {
+            if (e.target === qrModal) {
+                closeQRModal();
+            }
+        });
+    }
 
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && qrModal.style.display === 'flex') {
-            qrModal.style.display = 'none';
+        if (e.key === 'Escape' && qrModal && qrModal.classList.contains('active')) {
+            closeQRModal();
         }
     });
 }
