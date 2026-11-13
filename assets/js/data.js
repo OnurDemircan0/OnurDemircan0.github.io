@@ -46,6 +46,7 @@ const projectsData = [
             "assets/images/msc/Two Cars Play Store 2.png"
         ],
         storeLink: "https://play.google.com/store/apps/details?id=com.gravity_vortex.mindsharp_challenges",
+        appStoreLink: "https://apps.apple.com/us/app/mindsharp-challenges/id6785757077",
         privacyLink: "privacy-msc.html", 
         desc_short: {
             en: "A brain-training app featuring a variety of mini-games to improve reflexes, logic, and memory.",

@@ -763,6 +763,25 @@ button[type="submit"]:hover {
     transform: translateY(-2px);
 }
 
+.cta-btn.disabled,
+.cta-btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(1);
+    box-shadow: none;
+}
+
+.qr-widget {
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qr-widget:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
 
 /* Lightbox Modal */
 .lightbox-modal {

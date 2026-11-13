@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="color-scheme" content="dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Game | Onur Demircan</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <script src="assets/js/data.js"></script>
+    <script>
+        // Fast redirect logic in head
+        (function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const gameId = params.get('id') || params.get('app') || params.get('game');
+                if (!gameId || typeof projectsData === 'undefined') return;
+
+                const project = projectsData.find(p => p.id === gameId);
+                if (!project) return;
+
+                const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+                const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                const isAndroid = /Android/i.test(ua);
+
+                if (isIOS && project.appStoreLink) {
+                    window.location.replace(project.appStoreLink);
+                } else if (isAndroid && project.storeLink) {
+                    window.location.replace(project.storeLink);
+                }
+            } catch (e) {
+                console.error("Redirect error:", e);
+            }
+        })();
+    </script>
+    <style>
+        .download-wrapper {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .download-card {
+            max-width: 520px;
+            width: 100%;
+            padding: 2.5rem;
+            text-align: center;
+            border-radius: 20px;
+        }
+        .game-logo-large {
+            width: 90px;
+            height: 90px;
+            border-radius: 20px;
+            margin: 0 auto 1.5rem auto;
+            display: block;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        .store-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 2rem 0 1.5rem 0;
+        }
+        .store-badge-link img {
+            height: 48px;
+            transition: transform 0.2s ease;
+        }
+        .store-badge-link:hover img {
+            transform: scale(1.05);
+        }
+        .back-link {
+            color: var(--accent-color, #38bdf8);
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 1rem;
+            transition: opacity 0.2s ease;
+        }
+        .back-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+        .status-msg {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-bg"></div>
+
+    <main class="download-wrapper">
+        <div id="content-box" class="download-card glass-card">
+            <img id="game-logo" src="" alt="Game Logo" class="game-logo-large" style="display: none;">
+            <h1 id="game-title" class="title" style="font-size: 1.8rem; margin-bottom: 0.5rem;">Redirecting...</h1>
+            <p id="game-desc" class="status-msg">Opening the store for your device...</p>
+
+            <div id="store-buttons" class="store-buttons">
+                <a id="btn-play" href="#" target="_blank" class="store-badge-link" style="display: none;">
+                    <img src="assets/images/GetItOnGooglePlay_Badge_Web_color_English.svg" alt="Get it on Google Play">
+                </a>
+                <a id="btn-appstore" href="#" target="_blank" class="store-badge-link" style="display: none;">
+                    <img src="assets/images/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">
+                </a>
+            </div>
+
+            <div>
+                <a id="project-page-link" href="index.html" class="back-link">
+                    &larr; View Portfolio & Details
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const gameId = params.get('id') || params.get('app') || params.get('game');
+            const logoEl = document.getElementById('game-logo');
+            const titleEl = document.getElementById('game-title');
+            const descEl = document.getElementById('game-desc');
+            const playEl = document.getElementById('btn-play');
+            const appStoreEl = document.getElementById('btn-appstore');
+            const projLink = document.getElementById('project-page-link');
+
+            if (!gameId || typeof projectsData === 'undefined') {
+                titleEl.textContent = "Project Not Found";
+                descEl.textContent = "Please select a game from our portfolio.";
+                projLink.href = "index.html";
+                return;
+            }
+
+            const project = projectsData.find(p => p.id === gameId);
+            if (!project) {
+                titleEl.textContent = "Game Not Found";
+                descEl.textContent = "The requested game could not be found.";
+                projLink.href = "index.html";
+                return;
+            }
+
+            const title = typeof project.title === 'string' ? project.title : (project.title.en || project.title.tr || "Game");
+            document.title = "Download " + title + " | Onur Demircan";
+            titleEl.textContent = title;
+
+            if (project.logo) {
+                logoEl.src = project.logo;
+                logoEl.style.display = 'block';
+            }
+
+            projLink.href = "project.html?id=" + encodeURIComponent(project.id);
+            projLink.textContent = "← Back to " + title + " Details";
+
+            let hasStore = false;
+            if (project.storeLink) {
+                playEl.href = project.storeLink;
+                playEl.style.display = 'inline-flex';
+                hasStore = true;
+            }
+            if (project.appStoreLink) {
+                appStoreEl.href = project.appStoreLink;
+                appStoreEl.style.display = 'inline-flex';
+                hasStore = true;
+            }
+
+            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+            const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isAndroid = /Android/i.test(ua);
+
+            if (isIOS && !project.appStoreLink) {
+                descEl.textContent = title + " is currently available on Google Play for Android.";
+            } else if (isAndroid && !project.storeLink) {
+                descEl.textContent = title + " is currently available on the Apple App Store for iOS.";
+            } else if (hasStore) {
+                descEl.textContent = "Choose your store below to download and play:";
+            } else {
+                descEl.textContent = "Coming soon to mobile app stores.";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -44,9 +44,14 @@ const translations = {
         rapid_desc: "A game I developed along with a Udemy course. You control a rocket and try to reach the green platform using your fuel efficiently.",
         btn_view_details: "View Details",
         btn_back: "← Back to Projects",
+        btn_download: "Download",
         btn_store: "Play Store",
         btn_privacy: "Privacy Policy",
         btn_terms: "Terms of Use",
+        qr_title: "Scan QR",
+        qr_subtitle: "Play on mobile",
+        qr_modal_title: "Scan to Download",
+        qr_modal_desc: "Scan this QR code with your phone camera to download.",
         error_not_found: "Project not found."
     },
     tr: {
@@ -94,9 +99,14 @@ const translations = {
         rapid_desc: "Bir Udemy kursu ile beraber geliştirdiğim bir oyun. Bir roketi kontrol edip yakıtınızı verimli kullanarak yeşil platforma ulaşmaya çalışıyorsunuz.",
         btn_view_details: "İncele",
         btn_back: "← Projelere Dön",
+        btn_download: "İndir",
         btn_store: "Play Store",
         btn_privacy: "Gizlilik Politikası",
         btn_terms: "Kullanım Koşulları",
+        qr_title: "QR Tara",
+        qr_subtitle: "Mobilde oyna",
+        qr_modal_title: "İndirmek İçin Tara",
+        qr_modal_desc: "Oyunu indirmek için telefonunuzun kamerasıyla bu QR kodunu tarayın.",
         error_not_found: "Proje bulunamadı."
     }
 };

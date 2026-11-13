@@ -1,5 +1,19 @@
 // Project Detail Logic
 
+// Helper: Detect Device OS
+function getClientDeviceOS() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+    // iOS detection (iPhone, iPad, iPod, or iPad on iOS 13+ which reports MacIntel with touch)
+    const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) return 'ios';
+    // Android detection
+    if (/Android/i.test(ua)) return 'android';
+    // Other mobile
+    if (/webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return 'mobile_other';
+    // Default to computer / desktop
+    return 'computer';
+}
+
 let currentProjectImages = [];
 let currentImageIndex = 0;
 
@@ -272,6 +286,71 @@ function loadProjectDetails() {
     } else {
         appStoreEl.style.display = 'none';
     }
+
+    // Device & Store Availability Logic
+    const userOS = getClientDeviceOS();
+    const hasPlayStore = Boolean(project.storeLink && project.storeLink !== '#');
+    const hasAppStore = Boolean(project.appStoreLink && project.appStoreLink !== '#');
+
+    // Download Button Logic:
+    // Visible only if (user is Android && has Play Store) OR (user is iOS && has App Store), otherwise disable.
+    const downloadBtn = document.getElementById('download-btn');
+    if (downloadBtn) {
+        let activeDownloadUrl = null;
+        if (userOS === 'android' && hasPlayStore) {
+            activeDownloadUrl = project.storeLink;
+        } else if (userOS === 'ios' && hasAppStore) {
+            activeDownloadUrl = project.appStoreLink;
+        }
+
+        if (activeDownloadUrl) {
+            downloadBtn.href = activeDownloadUrl;
+            downloadBtn.style.display = 'inline-flex';
+            downloadBtn.removeAttribute('disabled');
+            downloadBtn.removeAttribute('aria-disabled');
+            downloadBtn.classList.remove('disabled');
+        } else {
+            downloadBtn.style.display = 'none';
+            downloadBtn.removeAttribute('href');
+            downloadBtn.setAttribute('disabled', 'true');
+            downloadBtn.setAttribute('aria-disabled', 'true');
+            downloadBtn.classList.add('disabled');
+        }
+    }
+
+    // QR Code Widget Logic:
+    // Visible only if user device is a computer.
+    const qrContainer = document.getElementById('qr-container');
+    const qrModal = document.getElementById('qr-modal');
+    const qrMini = document.getElementById('qr-code-mini');
+    const qrLarge = document.getElementById('qr-code-large');
+    const qrGameName = document.getElementById('qr-game-name');
+
+    if (qrContainer) {
+        if (userOS === 'computer' && (hasPlayStore || hasAppStore)) {
+            qrContainer.style.display = 'inline-flex';
+
+            // Smart download URL routes to appropriate store when scanned with phone
+            const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+            const smartUrl = window.location.protocol.startsWith('http')
+                ? (window.location.origin + basePath + 'download.html?id=' + encodeURIComponent(project.id))
+                : ('https://onurdemircan0.github.io/download.html?id=' + encodeURIComponent(project.id));
+
+            if (typeof qrcodegen !== 'undefined') {
+                if (qrMini) qrcodegen.renderTo(qrMini, smartUrl, 1);
+                if (qrLarge) qrcodegen.renderTo(qrLarge, smartUrl, 2);
+            }
+
+            const currentTitle = typeof project.title === 'string' ? project.title : (project.title[window.currentLang || 'en'] || project.title.en);
+            if (qrGameName) qrGameName.innerText = currentTitle;
+
+            qrContainer.onclick = () => {
+                if (qrModal) qrModal.style.display = 'flex';
+            };
+        } else {
+            qrContainer.style.display = 'none';
+        }
+    }
     
     const privacyEl = document.getElementById('privacy-link');
     if (project.privacyLink && project.privacyLink !== '#') {
@@ -333,13 +412,18 @@ function loadProjectDetails() {
 
 function updateProjectText(project) {
     const lang = window.currentLang || 'en';
+    const title = typeof project.title === 'string' ? project.title : (project.title[lang] || project.title.en);
     const titleEl = document.getElementById('proj-title');
     if (titleEl) {
-        titleEl.innerText = typeof project.title === 'string' ? project.title : (project.title[lang] || project.title.en);
+        titleEl.innerText = title;
     }
     const descEl = document.getElementById('proj-desc');
     if (descEl) {
         descEl.innerHTML = project.desc_long[lang];
+    }
+    const qrGameName = document.getElementById('qr-game-name');
+    if (qrGameName) {
+        qrGameName.innerText = title;
     }
 }
 
@@ -490,4 +574,30 @@ window.addEventListener('DOMContentLoaded', () => {
     if (prevBtn) prevBtn.addEventListener('click', prevImage);
     
     setupLightbox();
+    setupQRModal();
 });
+
+
+function setupQRModal() {
+    const qrModal = document.getElementById('qr-modal');
+    const qrClose = document.getElementById('qr-modal-close');
+    if (!qrModal) return;
+
+    if (qrClose) {
+        qrClose.addEventListener('click', () => {
+            qrModal.style.display = 'none';
+        });
+    }
+
+    qrModal.addEventListener('click', (e) => {
+        if (e.target === qrModal) {
+            qrModal.style.display = 'none';
+        }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && qrModal.style.display === 'flex') {
+            qrModal.style.display = 'none';
+        }
+    });
+}
