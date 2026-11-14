@@ -8,24 +8,63 @@
     <link rel="stylesheet" href="assets/css/main.css">
     <script src="assets/js/data.js"></script>
     <script>
-        // Fast redirect logic in head
+        const TRACKER_URL = 'https://script.google.com/macros/s/AKfycbxxOfyV7w-Dkr_p7uR8B2xweYoh0OHmZ4_BJpIAV8F6YLoVpMG0a1Ul19Kf_9E3QlH4/exec';
+
+        function logVisit(gameName, osName, actionName) {
+            try {
+                const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName);
+                if (window.fetch) {
+                    fetch(pingUrl, { method: 'GET', mode: 'no-cors', keepalive: true }).catch(function() {});
+                } else {
+                    new Image().src = pingUrl;
+                }
+            } catch (e) {
+                new Image().src = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName);
+            }
+        }
+
+        // Fast redirect & tracking logic in head
         (function() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const gameId = params.get('id') || params.get('app') || params.get('game');
                 if (!gameId || typeof projectsData === 'undefined') return;
 
-                const project = projectsData.find(p => p.id === gameId);
+                const project = projectsData.find(function(p) { return p.id === gameId; });
                 if (!project) return;
+
+                const gameTitle = typeof project.title === 'string' ? project.title : (project.title.en || project.title.tr || project.id);
 
                 const ua = navigator.userAgent || navigator.vendor || window.opera || '';
                 const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                 const isAndroid = /Android/i.test(ua);
 
+                let userOS = 'Desktop';
+                let action = 'Show Store Badges';
+                let redirectUrl = null;
+
                 if (isIOS && project.appStoreLink) {
-                    window.location.replace(project.appStoreLink);
+                    userOS = 'iOS';
+                    action = 'Redirect to App Store';
+                    redirectUrl = project.appStoreLink;
                 } else if (isAndroid && project.storeLink) {
-                    window.location.replace(project.storeLink);
+                    userOS = 'Android';
+                    action = 'Redirect to Play Store';
+                    redirectUrl = project.storeLink;
+                } else if (isIOS) {
+                    userOS = 'iOS';
+                    action = 'View Page (No App Store link)';
+                } else if (isAndroid) {
+                    userOS = 'Android';
+                    action = 'View Page (No Play Store link)';
+                }
+
+                logVisit(gameTitle, userOS, action);
+
+                if (redirectUrl) {
+                    setTimeout(function() {
+                        window.location.replace(redirectUrl);
+                    }, 120);
                 }
             } catch (e) {
                 console.error("Redirect error:", e);
@@ -168,11 +207,17 @@
             if (project.storeLink) {
                 playEl.href = project.storeLink;
                 playEl.style.display = 'inline-flex';
+                playEl.addEventListener('click', function() {
+                    logVisit(title, 'Desktop', 'Click Play Store Badge');
+                });
                 hasStore = true;
             }
             if (project.appStoreLink) {
                 appStoreEl.href = project.appStoreLink;
                 appStoreEl.style.display = 'inline-flex';
+                appStoreEl.addEventListener('click', function() {
+                    logVisit(title, 'Desktop', 'Click App Store Badge');
+                });
                 hasStore = true;
             }
 
