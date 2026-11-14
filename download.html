@@ -53,24 +53,24 @@
                 const isAndroid = /Android/i.test(ua);
 
                 let userOS = 'Desktop';
-                let action = 'Show Store Badges';
+                let action = 'View Download Page';
                 let redirectUrl = null;
 
                 if (project) {
                     if (isIOS && project.appStoreLink) {
                         userOS = 'iOS';
-                        action = 'Redirect to App Store';
+                        action = 'QR Scan';
                         redirectUrl = project.appStoreLink;
                     } else if (isAndroid && project.storeLink) {
                         userOS = 'Android';
-                        action = 'Redirect to Play Store';
+                        action = 'QR Scan';
                         redirectUrl = project.storeLink;
                     } else if (isIOS) {
                         userOS = 'iOS';
-                        action = 'View Page (No App Store link)';
+                        action = 'View Download Page';
                     } else if (isAndroid) {
                         userOS = 'Android';
-                        action = 'View Page (No Play Store link)';
+                        action = 'View Download Page';
                     }
                 }
 
@@ -254,13 +254,13 @@
             if (project.storeLink) {
                 playEl.href = project.storeLink;
                 playEl.style.display = 'inline-flex';
-                attachBadgeTracking(playEl, 'Click Play Store Badge (Download Page)');
+                attachBadgeTracking(playEl, 'Play Store Badge');
                 hasStore = true;
             }
             if (project.appStoreLink) {
                 appStoreEl.href = project.appStoreLink;
                 appStoreEl.style.display = 'inline-flex';
-                attachBadgeTracking(appStoreEl, 'Click App Store Badge (Download Page)');
+                attachBadgeTracking(appStoreEl, 'App Store Badge');
                 hasStore = true;
             }
 

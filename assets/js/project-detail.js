@@ -376,7 +376,7 @@ function loadProjectDetails() {
     if (hasPlayStore) {
         playStoreEl.href = project.storeLink;
         playStoreEl.style.display = 'inline-flex';
-        attachTrackedStoreLink(playStoreEl, gameTitleForLog, userOS, 'Click Play Store Badge (Project Page)');
+        attachTrackedStoreLink(playStoreEl, gameTitleForLog, userOS, 'Play Store Badge');
     } else {
         playStoreEl.style.display = 'none';
         playStoreEl.onclick = null;
@@ -385,7 +385,7 @@ function loadProjectDetails() {
     if (hasAppStore) {
         appStoreEl.href = project.appStoreLink;
         appStoreEl.style.display = 'inline-flex';
-        attachTrackedStoreLink(appStoreEl, gameTitleForLog, userOS, 'Click App Store Badge (Project Page)');
+        attachTrackedStoreLink(appStoreEl, gameTitleForLog, userOS, 'App Store Badge');
     } else {
         appStoreEl.style.display = 'none';
         appStoreEl.onclick = null;
@@ -408,7 +408,7 @@ function loadProjectDetails() {
             downloadBtn.removeAttribute('disabled');
             downloadBtn.removeAttribute('aria-disabled');
             downloadBtn.classList.remove('disabled');
-            attachTrackedStoreLink(downloadBtn, gameTitleForLog, userOS, 'Click Download Button (Project Page)');
+            attachTrackedStoreLink(downloadBtn, gameTitleForLog, userOS, 'Download Button');
         } else {
             downloadBtn.onclick = null;
             downloadBtn.style.display = 'none';
