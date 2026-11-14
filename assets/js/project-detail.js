@@ -1,5 +1,19 @@
 // Project Detail Logic
 
+const TRACKER_URL = 'https://script.google.com/macros/s/AKfycbxxOfyV7w-Dkr_p7uR8B2xweYoh0OHmZ4_BJpIAV8F6YLoVpMG0a1Ul19Kf_9E3QlH4/exec';
+window._trackingPixels = window._trackingPixels || [];
+
+function logProjectAnalytics(gameName, osName, actionName) {
+    try {
+        const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName) + '&t=' + Date.now();
+        const pixel = new Image();
+        pixel.src = pingUrl;
+        window._trackingPixels.push(pixel);
+    } catch (e) {
+        console.error("Tracker error:", e);
+    }
+}
+
 // Helper: Detect Device OS
 function getClientDeviceOS() {
     const ua = navigator.userAgent || navigator.vendor || window.opera || '';
@@ -273,18 +287,28 @@ function loadProjectDetails() {
     const playStoreEl = document.getElementById('play-store-link');
     const appStoreEl = document.getElementById('app-store-link');
     
+    const gameTitleForLog = typeof project.title === 'string' ? project.title : (project.title.en || project.title.tr || project.id);
+
     if (project.storeLink) {
         playStoreEl.href = project.storeLink;
         playStoreEl.style.display = 'inline-flex';
+        playStoreEl.onclick = function() {
+            logProjectAnalytics(gameTitleForLog, userOS, 'Click Play Store Badge (Project Page)');
+        };
     } else {
         playStoreEl.style.display = 'none';
+        playStoreEl.onclick = null;
     }
     
     if (project.appStoreLink) {
         appStoreEl.href = project.appStoreLink;
         appStoreEl.style.display = 'inline-flex';
+        appStoreEl.onclick = function() {
+            logProjectAnalytics(gameTitleForLog, userOS, 'Click App Store Badge (Project Page)');
+        };
     } else {
         appStoreEl.style.display = 'none';
+        appStoreEl.onclick = null;
     }
 
     // Device & Store Availability Logic
@@ -309,7 +333,11 @@ function loadProjectDetails() {
             downloadBtn.removeAttribute('disabled');
             downloadBtn.removeAttribute('aria-disabled');
             downloadBtn.classList.remove('disabled');
+            downloadBtn.onclick = function() {
+                logProjectAnalytics(gameTitleForLog, userOS, 'Click Download Button (Project Page)');
+            };
         } else {
+            downloadBtn.onclick = null;
             downloadBtn.style.display = 'none';
             downloadBtn.removeAttribute('href');
             downloadBtn.setAttribute('disabled', 'true');
