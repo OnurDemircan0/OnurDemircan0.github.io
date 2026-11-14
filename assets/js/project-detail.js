@@ -3,15 +3,69 @@
 const TRACKER_URL = 'https://script.google.com/macros/s/AKfycbxxOfyV7w-Dkr_p7uR8B2xweYoh0OHmZ4_BJpIAV8F6YLoVpMG0a1Ul19Kf_9E3QlH4/exec';
 window._trackingPixels = window._trackingPixels || [];
 
-function logProjectAnalytics(gameName, osName, actionName) {
+function logProjectAnalytics(gameName, osName, actionName, callback) {
+    let called = false;
+    function done() {
+        if (!called) {
+            called = true;
+            if (typeof callback === 'function') callback();
+        }
+    }
+
     try {
         const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName) + '&t=' + Date.now();
+        
+        // 1. Modern keepalive fetch
+        if (window.fetch) {
+            try {
+                fetch(pingUrl, { method: 'GET', mode: 'no-cors', keepalive: true });
+            } catch (err) {}
+        }
+
+        // 2. Image ping with onload/onerror
         const pixel = new Image();
+        pixel.onload = done;
+        pixel.onerror = done;
         pixel.src = pingUrl;
         window._trackingPixels.push(pixel);
+
+        // 3. Safety timeout (max 300ms)
+        setTimeout(done, 300);
     } catch (e) {
         console.error("Tracker error:", e);
+        done();
     }
+}
+
+// Helper: Attach robust tracking to store links and download buttons
+function attachTrackedStoreLink(element, gameTitle, os, actionName) {
+    if (!element) return;
+    element.onclick = function(e) {
+        const dest = element.href;
+        if (!dest || dest === '#' || dest.startsWith('javascript:')) return;
+
+        e.preventDefault();
+
+        if (os === 'computer') {
+            // Open window synchronously in user gesture to avoid popup blockers
+            const newWindow = window.open('about:blank', '_blank');
+            if (newWindow) {
+                newWindow.opener = null;
+            }
+            logProjectAnalytics(gameTitle, os, actionName, function() {
+                if (newWindow) {
+                    newWindow.location.href = dest;
+                } else {
+                    window.location.href = dest;
+                }
+            });
+        } else {
+            // Mobile: wait for tracking ping then navigate directly to store
+            logProjectAnalytics(gameTitle, os, actionName, function() {
+                window.location.href = dest;
+            });
+        }
+    };
 }
 
 // Helper: Detect Device OS
@@ -283,38 +337,34 @@ function loadProjectDetails() {
     // Set Data
     document.getElementById('proj-title').innerText = typeof project.title === 'string' ? project.title : (project.title[window.currentLang || 'en'] || project.title.en);
     
+    // Device & Store Availability Logic
+    const userOS = getClientDeviceOS();
+    const hasPlayStore = Boolean(project.storeLink && project.storeLink !== '#');
+    const hasAppStore = Boolean(project.appStoreLink && project.appStoreLink !== '#');
+
     // Links
     const playStoreEl = document.getElementById('play-store-link');
     const appStoreEl = document.getElementById('app-store-link');
     
     const gameTitleForLog = typeof project.title === 'string' ? project.title : (project.title.en || project.title.tr || project.id);
 
-    if (project.storeLink) {
+    if (hasPlayStore) {
         playStoreEl.href = project.storeLink;
         playStoreEl.style.display = 'inline-flex';
-        playStoreEl.onclick = function() {
-            logProjectAnalytics(gameTitleForLog, userOS, 'Click Play Store Badge (Project Page)');
-        };
+        attachTrackedStoreLink(playStoreEl, gameTitleForLog, userOS, 'Click Play Store Badge (Project Page)');
     } else {
         playStoreEl.style.display = 'none';
         playStoreEl.onclick = null;
     }
     
-    if (project.appStoreLink) {
+    if (hasAppStore) {
         appStoreEl.href = project.appStoreLink;
         appStoreEl.style.display = 'inline-flex';
-        appStoreEl.onclick = function() {
-            logProjectAnalytics(gameTitleForLog, userOS, 'Click App Store Badge (Project Page)');
-        };
+        attachTrackedStoreLink(appStoreEl, gameTitleForLog, userOS, 'Click App Store Badge (Project Page)');
     } else {
         appStoreEl.style.display = 'none';
         appStoreEl.onclick = null;
     }
-
-    // Device & Store Availability Logic
-    const userOS = getClientDeviceOS();
-    const hasPlayStore = Boolean(project.storeLink && project.storeLink !== '#');
-    const hasAppStore = Boolean(project.appStoreLink && project.appStoreLink !== '#');
 
     // Download Button Logic:
     // Visible only if (user is Android && has Play Store) OR (user is iOS && has App Store), otherwise disable.
@@ -333,9 +383,7 @@ function loadProjectDetails() {
             downloadBtn.removeAttribute('disabled');
             downloadBtn.removeAttribute('aria-disabled');
             downloadBtn.classList.remove('disabled');
-            downloadBtn.onclick = function() {
-                logProjectAnalytics(gameTitleForLog, userOS, 'Click Download Button (Project Page)');
-            };
+            attachTrackedStoreLink(downloadBtn, gameTitleForLog, userOS, 'Click Download Button (Project Page)');
         } else {
             downloadBtn.onclick = null;
             downloadBtn.style.display = 'none';

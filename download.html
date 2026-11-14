@@ -12,24 +12,31 @@
 
         window._trackingPixels = [];
         function logVisit(gameName, osName, actionName, onComplete) {
+            let called = false;
+            function done() {
+                if (!called) {
+                    called = true;
+                    if (typeof onComplete === 'function') onComplete();
+                }
+            }
             try {
                 const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName) + '&t=' + Date.now();
-                const pixel = new Image();
-                let called = false;
-                function done() {
-                    if (!called) {
-                        called = true;
-                        if (typeof onComplete === 'function') onComplete();
-                    }
+                
+                if (window.fetch) {
+                    try {
+                        fetch(pingUrl, { method: 'GET', mode: 'no-cors', keepalive: true });
+                    } catch (err) {}
                 }
+
+                const pixel = new Image();
                 pixel.onload = done;
                 pixel.onerror = done;
                 pixel.src = pingUrl;
                 window._trackingPixels.push(pixel);
-                setTimeout(done, 500); // 500ms safety timeout
+                setTimeout(done, 400); // 400ms safety timeout
             } catch (e) {
                 console.error("Tracker error:", e);
-                if (typeof onComplete === 'function') onComplete();
+                done();
             }
         }
 
@@ -220,16 +227,30 @@
             if (project.storeLink) {
                 playEl.href = project.storeLink;
                 playEl.style.display = 'inline-flex';
-                playEl.addEventListener('click', function() {
-                    logVisit(title, 'Desktop', 'Click Play Store Badge');
+                playEl.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dest = this.href;
+                    const newWin = window.open('about:blank', '_blank');
+                    if (newWin) newWin.opener = null;
+                    logVisit(title, 'Desktop', 'Click Play Store Badge (Download Page)', function() {
+                        if (newWin) newWin.location.href = dest;
+                        else window.location.href = dest;
+                    });
                 });
                 hasStore = true;
             }
             if (project.appStoreLink) {
                 appStoreEl.href = project.appStoreLink;
                 appStoreEl.style.display = 'inline-flex';
-                appStoreEl.addEventListener('click', function() {
-                    logVisit(title, 'Desktop', 'Click App Store Badge');
+                appStoreEl.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dest = this.href;
+                    const newWin = window.open('about:blank', '_blank');
+                    if (newWin) newWin.opener = null;
+                    logVisit(title, 'Desktop', 'Click App Store Badge (Download Page)', function() {
+                        if (newWin) newWin.location.href = dest;
+                        else window.location.href = dest;
+                    });
                 });
                 hasStore = true;
             }
