@@ -10,16 +10,15 @@
     <script>
         const TRACKER_URL = 'https://script.google.com/macros/s/AKfycbxxOfyV7w-Dkr_p7uR8B2xweYoh0OHmZ4_BJpIAV8F6YLoVpMG0a1Ul19Kf_9E3QlH4/exec';
 
+        window._trackingPixels = [];
         function logVisit(gameName, osName, actionName) {
             try {
-                const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName);
-                if (window.fetch) {
-                    fetch(pingUrl, { method: 'GET', mode: 'no-cors', keepalive: true }).catch(function() {});
-                } else {
-                    new Image().src = pingUrl;
-                }
+                const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName) + '&t=' + Date.now();
+                const pixel = new Image();
+                pixel.src = pingUrl;
+                window._trackingPixels.push(pixel); // Prevent garbage collection before request fires
             } catch (e) {
-                new Image().src = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName);
+                console.error("Tracker error:", e);
             }
         }
 
@@ -64,7 +63,7 @@
                 if (redirectUrl) {
                     setTimeout(function() {
                         window.location.replace(redirectUrl);
-                    }, 120);
+                    }, 200);
                 }
             } catch (e) {
                 console.error("Redirect error:", e);
