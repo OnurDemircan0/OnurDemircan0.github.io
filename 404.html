@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        // Automatic fallback redirect for old /OnurDemircan0/ URLs or other broken links
+        (function() {
+            var path = window.location.pathname;
+            // Case-insensitive check for /onurdemircan0/
+            var match = path.match(/^\/onurdemircan0(\/.*)?$/i);
+            if (match) {
+                var cleanPath = match[1] || '/';
+                var targetUrl = window.location.origin + cleanPath + window.location.search + window.location.hash;
+                window.location.replace(targetUrl);
+                return;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        .error-wrapper {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-card {
+            max-width: 480px;
+            width: 100%;
+            padding: 2.5rem;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <div class="error-wrapper">
+        <div class="glass-card error-card">
+            <h1 style="font-size: 3rem; margin-bottom: 0.5rem; color: var(--accent-color, #38bdf8);">404</h1>
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: #fff;">Page Not Found</h2>
+            <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1.8rem; line-height: 1.6;">
+                The page you are looking for might have been moved or renamed.
+            </p>
+            <a href="index.html" class="cta-btn primary-btn" style="display: inline-flex; align-items: center; padding: 0.75rem 1.8rem; border-radius: 12px; text-decoration: none;">
+                Return to Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>
