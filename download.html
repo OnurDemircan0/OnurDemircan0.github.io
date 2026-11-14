@@ -11,14 +11,25 @@
         const TRACKER_URL = 'https://script.google.com/macros/s/AKfycbxxOfyV7w-Dkr_p7uR8B2xweYoh0OHmZ4_BJpIAV8F6YLoVpMG0a1Ul19Kf_9E3QlH4/exec';
 
         window._trackingPixels = [];
-        function logVisit(gameName, osName, actionName) {
+        function logVisit(gameName, osName, actionName, onComplete) {
             try {
                 const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName) + '&t=' + Date.now();
                 const pixel = new Image();
+                let called = false;
+                function done() {
+                    if (!called) {
+                        called = true;
+                        if (typeof onComplete === 'function') onComplete();
+                    }
+                }
+                pixel.onload = done;
+                pixel.onerror = done;
                 pixel.src = pingUrl;
-                window._trackingPixels.push(pixel); // Prevent garbage collection before request fires
+                window._trackingPixels.push(pixel);
+                setTimeout(done, 500); // 500ms safety timeout
             } catch (e) {
                 console.error("Tracker error:", e);
+                if (typeof onComplete === 'function') onComplete();
             }
         }
 
@@ -27,12 +38,13 @@
             try {
                 const params = new URLSearchParams(window.location.search);
                 const gameId = params.get('id') || params.get('app') || params.get('game');
-                if (!gameId || typeof projectsData === 'undefined') return;
+                
+                let project = null;
+                if (gameId && typeof projectsData !== 'undefined') {
+                    project = projectsData.find(function(p) { return p.id === gameId; });
+                }
 
-                const project = projectsData.find(function(p) { return p.id === gameId; });
-                if (!project) return;
-
-                const gameTitle = typeof project.title === 'string' ? project.title : (project.title.en || project.title.tr || project.id);
+                const gameTitle = project ? (typeof project.title === 'string' ? project.title : (project.title.en || project.title.tr || project.id)) : (gameId || 'Direct Visit');
 
                 const ua = navigator.userAgent || navigator.vendor || window.opera || '';
                 const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -42,28 +54,30 @@
                 let action = 'Show Store Badges';
                 let redirectUrl = null;
 
-                if (isIOS && project.appStoreLink) {
-                    userOS = 'iOS';
-                    action = 'Redirect to App Store';
-                    redirectUrl = project.appStoreLink;
-                } else if (isAndroid && project.storeLink) {
-                    userOS = 'Android';
-                    action = 'Redirect to Play Store';
-                    redirectUrl = project.storeLink;
-                } else if (isIOS) {
-                    userOS = 'iOS';
-                    action = 'View Page (No App Store link)';
-                } else if (isAndroid) {
-                    userOS = 'Android';
-                    action = 'View Page (No Play Store link)';
+                if (project) {
+                    if (isIOS && project.appStoreLink) {
+                        userOS = 'iOS';
+                        action = 'Redirect to App Store';
+                        redirectUrl = project.appStoreLink;
+                    } else if (isAndroid && project.storeLink) {
+                        userOS = 'Android';
+                        action = 'Redirect to Play Store';
+                        redirectUrl = project.storeLink;
+                    } else if (isIOS) {
+                        userOS = 'iOS';
+                        action = 'View Page (No App Store link)';
+                    } else if (isAndroid) {
+                        userOS = 'Android';
+                        action = 'View Page (No Play Store link)';
+                    }
                 }
 
-                logVisit(gameTitle, userOS, action);
-
                 if (redirectUrl) {
-                    setTimeout(function() {
+                    logVisit(gameTitle, userOS, action, function() {
                         window.location.replace(redirectUrl);
-                    }, 200);
+                    });
+                } else {
+                    logVisit(gameTitle, userOS, action);
                 }
             } catch (e) {
                 console.error("Redirect error:", e);
