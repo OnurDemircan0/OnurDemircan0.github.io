@@ -15,21 +15,14 @@ function logProjectAnalytics(gameName, osName, actionName, callback) {
     try {
         const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName) + '&t=' + Date.now();
         
-        // 1. Modern keepalive fetch
-        if (window.fetch) {
-            try {
-                fetch(pingUrl, { method: 'GET', mode: 'no-cors', keepalive: true });
-            } catch (err) {}
-        }
-
-        // 2. Image ping with onload/onerror
+        // Single image ping (guarantees exactly 1 row in Google Sheet)
         const pixel = new Image();
         pixel.onload = done;
         pixel.onerror = done;
         pixel.src = pingUrl;
         window._trackingPixels.push(pixel);
 
-        // 3. Safety timeout (max 300ms)
+        // Safety timeout (max 300ms)
         setTimeout(done, 300);
     } catch (e) {
         console.error("Tracker error:", e);
@@ -40,19 +33,39 @@ function logProjectAnalytics(gameName, osName, actionName, callback) {
 // Helper: Attach robust tracking to store links and download buttons
 function attachTrackedStoreLink(element, gameTitle, os, actionName) {
     if (!element) return;
-    element.onclick = function(e) {
+
+    element._trackGameTitle = gameTitle;
+    element._trackOS = os;
+    element._trackAction = actionName;
+
+    if (element._hasTrackedListener) return;
+    element._hasTrackedListener = true;
+
+    // 1. Left Click (button === 0)
+    element.addEventListener('click', function(e) {
+        if (e.button !== 0) return;
         const dest = element.href;
         if (!dest || dest === '#' || dest.startsWith('javascript:')) return;
 
+        const currentTitle = element._trackGameTitle || gameTitle;
+        const currentOS = element._trackOS || os;
+        const currentAction = element._trackAction || actionName;
+
+        // If Ctrl, Cmd, or Shift is held, browser opens in new tab natively
+        if (e.ctrlKey || e.metaKey || e.shiftKey) {
+            logProjectAnalytics(currentTitle, currentOS, currentAction);
+            return;
+        }
+
         e.preventDefault();
 
-        if (os === 'computer') {
-            // Open window synchronously in user gesture to avoid popup blockers
+        if (currentOS === 'Desktop') {
+            // Open window synchronously to avoid popup blockers
             const newWindow = window.open('about:blank', '_blank');
             if (newWindow) {
                 newWindow.opener = null;
             }
-            logProjectAnalytics(gameTitle, os, actionName, function() {
+            logProjectAnalytics(currentTitle, currentOS, currentAction, function() {
                 if (newWindow) {
                     newWindow.location.href = dest;
                 } else {
@@ -61,11 +74,23 @@ function attachTrackedStoreLink(element, gameTitle, os, actionName) {
             });
         } else {
             // Mobile: wait for tracking ping then navigate directly to store
-            logProjectAnalytics(gameTitle, os, actionName, function() {
+            logProjectAnalytics(currentTitle, currentOS, currentAction, function() {
                 window.location.href = dest;
             });
         }
-    };
+    });
+
+    // 2. Middle Click (button === 1 / scroll wheel click)
+    element.addEventListener('auxclick', function(e) {
+        if (e.button === 1) {
+            const dest = element.href;
+            if (!dest || dest === '#' || dest.startsWith('javascript:')) return;
+            const currentTitle = element._trackGameTitle || gameTitle;
+            const currentOS = element._trackOS || os;
+            const currentAction = element._trackAction || actionName;
+            logProjectAnalytics(currentTitle, currentOS, currentAction);
+        }
+    });
 }
 
 // Helper: Detect Device OS
@@ -73,13 +98,13 @@ function getClientDeviceOS() {
     const ua = navigator.userAgent || navigator.vendor || window.opera || '';
     // iOS detection (iPhone, iPad, iPod, or iPad on iOS 13+ which reports MacIntel with touch)
     const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIOS) return 'ios';
+    if (isIOS) return 'iOS';
     // Android detection
-    if (/Android/i.test(ua)) return 'android';
+    if (/Android/i.test(ua)) return 'Android';
     // Other mobile
-    if (/webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return 'mobile_other';
+    if (/webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return 'Mobile Other';
     // Default to computer / desktop
-    return 'computer';
+    return 'Desktop';
 }
 
 let currentProjectImages = [];
@@ -371,9 +396,9 @@ function loadProjectDetails() {
     const downloadBtn = document.getElementById('download-btn');
     if (downloadBtn) {
         let activeDownloadUrl = null;
-        if (userOS === 'android' && hasPlayStore) {
+        if (userOS === 'Android' && hasPlayStore) {
             activeDownloadUrl = project.storeLink;
-        } else if (userOS === 'ios' && hasAppStore) {
+        } else if (userOS === 'iOS' && hasAppStore) {
             activeDownloadUrl = project.appStoreLink;
         }
 
@@ -404,7 +429,7 @@ function loadProjectDetails() {
     const qrZoomHint = document.getElementById('qr-zoom-hint');
 
     if (qrContainer) {
-        if (userOS === 'computer' && (hasPlayStore || hasAppStore)) {
+        if (userOS === 'Desktop' && (hasPlayStore || hasAppStore)) {
             qrContainer.style.display = 'flex';
 
             // QR Code URL:

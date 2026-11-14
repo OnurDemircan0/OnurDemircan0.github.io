@@ -22,12 +22,7 @@
             try {
                 const pingUrl = TRACKER_URL + '?game=' + encodeURIComponent(gameName) + '&os=' + encodeURIComponent(osName) + '&action=' + encodeURIComponent(actionName) + '&t=' + Date.now();
                 
-                if (window.fetch) {
-                    try {
-                        fetch(pingUrl, { method: 'GET', mode: 'no-cors', keepalive: true });
-                    } catch (err) {}
-                }
-
+                // Single image ping (guarantees exactly 1 row in Google Sheet)
                 const pixel = new Image();
                 pixel.onload = done;
                 pixel.onerror = done;
@@ -223,35 +218,49 @@
             projLink.href = "project.html?id=" + encodeURIComponent(project.id);
             projLink.textContent = "← Back to " + title + " Details";
 
-            let hasStore = false;
-            if (project.storeLink) {
-                playEl.href = project.storeLink;
-                playEl.style.display = 'inline-flex';
-                playEl.addEventListener('click', function(e) {
+            function attachBadgeTracking(el, actionName) {
+                if (!el) return;
+                // Left Click (button === 0)
+                el.addEventListener('click', function(e) {
+                    if (e.button !== 0) return;
+                    const dest = el.href;
+                    if (!dest || dest === '#' || dest.startsWith('javascript:')) return;
+
+                    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+                        logVisit(title, 'Desktop', actionName);
+                        return;
+                    }
+
                     e.preventDefault();
-                    const dest = this.href;
                     const newWin = window.open('about:blank', '_blank');
                     if (newWin) newWin.opener = null;
-                    logVisit(title, 'Desktop', 'Click Play Store Badge (Download Page)', function() {
+                    logVisit(title, 'Desktop', actionName, function() {
                         if (newWin) newWin.location.href = dest;
                         else window.location.href = dest;
                     });
                 });
+
+                // Middle Click (button === 1 / scroll wheel)
+                el.addEventListener('auxclick', function(e) {
+                    if (e.button === 1) {
+                        const dest = el.href;
+                        if (!dest || dest === '#' || dest.startsWith('javascript:')) return;
+                        logVisit(title, 'Desktop', actionName);
+                    }
+                });
+            }
+
+            let hasStore = false;
+            if (project.storeLink) {
+                playEl.href = project.storeLink;
+                playEl.style.display = 'inline-flex';
+                attachBadgeTracking(playEl, 'Click Play Store Badge (Download Page)');
                 hasStore = true;
             }
             if (project.appStoreLink) {
                 appStoreEl.href = project.appStoreLink;
                 appStoreEl.style.display = 'inline-flex';
-                appStoreEl.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const dest = this.href;
-                    const newWin = window.open('about:blank', '_blank');
-                    if (newWin) newWin.opener = null;
-                    logVisit(title, 'Desktop', 'Click App Store Badge (Download Page)', function() {
-                        if (newWin) newWin.location.href = dest;
-                        else window.location.href = dest;
-                    });
-                });
+                attachBadgeTracking(appStoreEl, 'Click App Store Badge (Download Page)');
                 hasStore = true;
             }
 
